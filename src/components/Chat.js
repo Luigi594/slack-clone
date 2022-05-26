@@ -1,15 +1,51 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import StarBorderOutlinedIcon from '@mui/icons-material/StarBorderOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useSelector } from 'react-redux';
 import { selectRoomId } from '../features/appSlice';
 import ChatInput from "./ChatInput";
+import { useDocument, useCollection } from "react-firebase-hooks/firestore";
+import { collection, doc, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
+import Message from './Message';
 
 function Chat() {
 
-  // pulling the roomId from the store of redux  
-  const roomId = useSelector(selectRoomId);  
+    const chatRef = useRef(null);
+
+    // pulling the roomId from the store of redux  
+    const roomId = useSelector(selectRoomId);  
+
+    // document ref
+    const docRef = doc(db, "rooms", roomId);
+
+    // collection ref
+    const collectionRef = collection(db, "rooms", roomId, "messages");
+
+    // Query to order the messages
+    const Query = query(collectionRef, orderBy("timestamp", "asc"));
+
+    // this is for extract the name of the current room
+    // we verify if is there any roomId before
+    const [roomDetails] = useDocument(
+        roomId && docRef
+    );
+
+    // get all the messages from that room
+    const [roomMessages, loading] = useCollection(
+        roomId && Query
+    );
+
+    // when the roomId change, I want the Chat component scroll me
+    // down be default
+    useEffect(() => {
+
+        // get the chatRef, poin to the current room and scroll it down
+        chatRef?.current?.scrollIntoView({
+            behavior: "smooth"
+        });
+    }, [roomId, loading]);
 
   return (
     <ChatContainer>
@@ -19,7 +55,7 @@ function Chat() {
             <HeaderLeft>
 
                 <h4>
-                    <strong>#Room-name</strong>
+                    <strong>#{roomDetails?.data().name}</strong>
                 </h4>
                 <StarBorderOutlinedIcon />
 
@@ -37,17 +73,31 @@ function Chat() {
         <ChatMessages>
 
             {/** Listing all the messages */}
+            {roomMessages?.docs.map((doc) => {
 
+                const { message, timestamp, user, userImage } = doc.data();
 
+                return(
+
+                    <Message
+                    
+                    key={doc.id}
+                    message={message}
+                    timestamp={timestamp}
+                    user={user}
+                    userImage={userImage} />
+                );
+            })}
+
+            <ChatBottom ref={chatRef} />
         </ChatMessages>
 
-        {/** this is the input for the messages, grabing
-         * properties
-         */}
+        {/** this is the input for the messages, grabing properties */}
         <ChatInput
         
-        channelId={roomId}
-        />
+        chatRef={chatRef}
+        channelName={roomDetails?.data().name}
+        channelId={roomId}/>
 
     </ChatContainer>
   )
@@ -104,7 +154,9 @@ const HeaderRight = styled.div`
     }
 `;
 
-const ChatMessages = styled.div`
+const ChatMessages = styled.div``;
 
+const ChatBottom = styled.div`
 
+    padding-bottom: 200px;
 `;

@@ -4,7 +4,7 @@ import { Button } from '@mui/material';
 import { addDoc, collection, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
-function ChatInput({ channelName, channelId}) {
+function ChatInput({ channelName, channelId, chatRef }) {
     
   // const inputRef = useRef(null);
   const [input, setInput] = useState('');
@@ -32,6 +32,11 @@ function ChatInput({ channelName, channelId}) {
         userImage: "https://i.pinimg.com/originals/9c/70/54/9c70543426c82c05513dadcd210ce67a.jpg"
     });
 
+    // to scroll it when we send a new message as well
+    chatRef.current.scrollIntoView({
+        behavior: "smooth"
+    });
+
     setInput('');
   }  
 
@@ -39,7 +44,7 @@ function ChatInput({ channelName, channelId}) {
     <ChatInputContainer>
         
         <form>
-            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={`Message #ROOM`} />
+            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={`Message #${channelName}`} />
             <Button hidden type='submit' onClick={sendMessage}>
                 SEND
             </Button>
