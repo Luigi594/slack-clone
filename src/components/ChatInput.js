@@ -2,10 +2,13 @@ import React, { useState } from 'react'
 import styled from 'styled-components';
 import { Button } from '@mui/material';
 import { addDoc, collection, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 function ChatInput({ channelName, channelId, chatRef }) {
-    
+  
+  const [user] = useAuthState(auth);
+
   // const inputRef = useRef(null);
   const [input, setInput] = useState('');
 
@@ -28,8 +31,8 @@ function ChatInput({ channelName, channelId, chatRef }) {
     addDoc(collection(myDoc, "messages"),{
         message: input,
         timestamp: serverTimestamp(),
-        user: "Thomas Shelby",
-        userImage: "https://i.pinimg.com/originals/9c/70/54/9c70543426c82c05513dadcd210ce67a.jpg"
+        user: user.displayName,
+        userImage: user.photoURL
     });
 
     // to scroll it when we send a new message as well

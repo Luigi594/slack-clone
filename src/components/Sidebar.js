@@ -15,12 +15,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import { collection } from 'firebase/firestore';
 import { useCollection } from "react-firebase-hooks/firestore";
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 function Sidebar() {
 
   // accesing to the rooms we have in our database with firebase hooks  
   const [channels, loading, error] = useCollection(collection(db, "rooms"));
+  const [user] = useAuthState(auth);
 
   return (
     <SidebarContainer>
@@ -29,7 +31,7 @@ function Sidebar() {
                 <h2>PAPA FAM</h2>
                 <h3>
                     <FiberManualRecordIcon />
-                    Luis Martínez
+                    {user.displayName}
                 </h3>
             </SidebarInfo>
 
@@ -68,6 +70,7 @@ const SidebarContainer = styled.div`
   border-top: 1px solid #49274b;
   max-width: 260px;
   margin-top: 60px;
+  overflow-y: scroll;
 
   > hr{
 

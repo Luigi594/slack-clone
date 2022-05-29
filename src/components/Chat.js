@@ -15,26 +15,17 @@ function Chat() {
     const chatRef = useRef(null);
 
     // pulling the roomId from the store of redux  
-    const roomId = useSelector(selectRoomId);  
-
-    // document ref
-    const docRef = doc(db, "rooms", roomId);
-
-    // collection ref
-    const collectionRef = collection(db, "rooms", roomId, "messages");
-
-    // Query to order the messages
-    const Query = query(collectionRef, orderBy("timestamp", "asc"));
+    const roomId = useSelector(selectRoomId);
 
     // this is for extract the name of the current room
     // we verify if is there any roomId before
     const [roomDetails] = useDocument(
-        roomId && docRef
+        roomId && doc(db, "rooms", roomId)
     );
 
     // get all the messages from that room
     const [roomMessages, loading] = useCollection(
-        roomId && Query
+        roomId && query(collection(db, "rooms", roomId, "messages"), orderBy("timestamp", "asc"))
     );
 
     // when the roomId change, I want the Chat component scroll me
